@@ -41,3 +41,9 @@ class TravelProjectRead(SQLModel):
     description: str | None
     start_date: date | None
     is_completed: bool
+
+
+class TravelProjectUpdate(SQLModel):
+    name: str | None = None
+    description: str | None = None
+    start_date: date | None = None
