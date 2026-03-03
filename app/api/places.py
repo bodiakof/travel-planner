@@ -87,3 +87,39 @@ def get_place(
 
     return place
 
+@router.patch("/{place_id}", response_model=ProjectPlaceRead)
+def update_place(
+    project_id: int,
+    place_id: int,
+    place_data: ProjectPlaceUpdate,
+    session: Session = Depends(get_session),
+):
+    statement = select(ProjectPlace).where(
+        ProjectPlace.id == place_id,
+        ProjectPlace.project_id == project_id,
+    )
+    place = session.exec(statement).first()
+
+    if not place:
+        raise HTTPException(status_code=404, detail="Place not found")
+
+    update_data = place_data.model_dump(exclude_unset=True)
+
+    for key, value in update_data.items():
+        setattr(place, key, value)
+
+    session.add(place)
+    session.commit()
+    session.refresh(place)
+
+    project = session.get(TravelProject, project_id)
+    if project and project.places:
+        if all(p.visited for p in project.places):
+            project.is_completed = True
+        else:
+            project.is_completed = False
+
+        session.add(project)
+        session.commit()
+
+    return place
