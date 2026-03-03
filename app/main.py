@@ -1,6 +1,8 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
+
 from app.db import create_db_and_tables
+from app.api.projects import router as projects_router
 
 
 @asynccontextmanager
@@ -14,6 +16,7 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+app.include_router(projects_router)
 
 @app.get("/")
 def read_root():
