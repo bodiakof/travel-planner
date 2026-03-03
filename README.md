@@ -26,14 +26,13 @@ The application allows travelers to create travel projects, add places retrieved
 
 ---
 
-## Additional Features
+## Bonus Points
 
 - Pagination on project listing
 - HTTP Basic Authentication
 - Docker support
 - Environment-based configuration
 - Postman collection
-- Clean project structure
 
 ---
 
