@@ -1,28 +1,24 @@
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
+import os
+from dotenv import load_dotenv
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Depends, HTTPException, status
 import secrets
+
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi import FastAPI, Depends, HTTPException, status
 
 from app.db import create_db_and_tables
 from app.api.projects import router as projects_router
 from app.api.places import router as places_router
 
+load_dotenv()
 
 security = HTTPBasic()
 
-USERNAME = "admin"
-PASSWORD = "secret"
+USERNAME = os.getenv("BASIC_AUTH_USERNAME")
+PASSWORD = os.getenv("BASIC_AUTH_PASSWORD")
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    create_db_and_tables()
-    yield
-
-
-app = FastAPI(
-    title="Travel Planner API",
-    lifespan=lifespan
-)
+if not USERNAME or not PASSWORD:
+    raise RuntimeError("Basic auth credentials not configured")
 
 def verify_credentials(
     credentials: HTTPBasicCredentials = Depends(security),
@@ -36,6 +32,17 @@ def verify_credentials(
             detail="Invalid credentials",
             headers={"WWW-Authenticate": "Basic"},
         )
+    
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    create_db_and_tables()
+    yield
+
+
+app = FastAPI(
+    title="Travel Planner API",
+    lifespan=lifespan
+)    
 
 app.include_router(projects_router, dependencies=[Depends(verify_credentials)])
 app.include_router(places_router, dependencies=[Depends(verify_credentials)])
@@ -43,5 +50,3 @@ app.include_router(places_router, dependencies=[Depends(verify_credentials)])
 @app.get("/")
 def read_root():
     return {"message": "Travel Planner API is running"}
-
-
