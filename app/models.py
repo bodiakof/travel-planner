@@ -1,3 +1,4 @@
+from __future__ import annotations
 from datetime import date
 from sqlmodel import SQLModel, Field, Relationship
 
@@ -13,7 +14,7 @@ class ProjectPlace(ProjectPlaceBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     project_id: int = Field(foreign_key="travelproject.id")
 
-    project: "TravelProject" | None = Relationship(back_populates="places")
+    project: TravelProject | None = Relationship(back_populates="places")
 
 
 class TravelProjectBase(SQLModel):
