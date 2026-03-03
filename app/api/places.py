@@ -69,3 +69,21 @@ def list_places(
         raise HTTPException(status_code=404, detail="Project not found")
 
     return project.places
+
+@router.get("/{place_id}", response_model=ProjectPlaceRead)
+def get_place(
+    project_id: int,
+    place_id: int,
+    session: Session = Depends(get_session),
+):
+    statement = select(ProjectPlace).where(
+        ProjectPlace.id == place_id,
+        ProjectPlace.project_id == project_id,
+    )
+    place = session.exec(statement).first()
+
+    if not place:
+        raise HTTPException(status_code=404, detail="Place not found")
+
+    return place
+
