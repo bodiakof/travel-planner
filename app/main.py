@@ -3,6 +3,7 @@ from fastapi import FastAPI
 
 from app.db import create_db_and_tables
 from app.api.projects import router as projects_router
+from app.api.places import router as places_router
 
 
 @asynccontextmanager
@@ -17,6 +18,7 @@ app = FastAPI(
 )
 
 app.include_router(projects_router)
+app.include_router(places_router)
 
 @app.get("/")
 def read_root():
