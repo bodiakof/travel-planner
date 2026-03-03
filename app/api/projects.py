@@ -20,6 +20,30 @@ async def create_project(
     project_data: TravelProjectCreate,
     session: Session = Depends(get_session),
 ):
+    unique_ids: list[int] = []
+
+    if project_data.places:
+        unique_ids = list(dict.fromkeys(project_data.places))
+
+        if len(unique_ids) != len(project_data.places):
+            raise HTTPException(
+                status_code=400,
+                detail="Duplicate place IDs provided",
+            )
+
+        if len(unique_ids) > 10:
+            raise HTTPException(
+                status_code=400,
+                detail="Project cannot contain more than 10 places",
+            )
+
+        artworks = []
+        for external_id in unique_ids:
+            artwork = await fetch_artwork(external_id)
+            artworks.append(artwork)
+    else:
+        artworks = []
+
     project = TravelProject(
         name=project_data.name,
         description=project_data.description,
@@ -30,24 +54,15 @@ async def create_project(
     session.commit()
     session.refresh(project)
 
-    if project_data.places:
-        if len(project_data.places) > 10:
-            raise HTTPException(
-                status_code=400,
-                detail="Project cannot contain more than 10 places"
-            )
+    for artwork in artworks:
+        place = ProjectPlace(
+            project_id=project.id,
+            external_id=artwork["external_id"],
+            title=artwork["title"],
+        )
+        session.add(place)
 
-        for external_id in project_data.places:
-            artwork = await fetch_artwork(external_id)
-
-            place = ProjectPlace(
-                project_id=project.id,
-                external_id=artwork["external_id"],
-                title=artwork["title"],
-            )
-
-            session.add(place)
-
+    if artworks:
         session.commit()
 
     return project
