@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session, select
 
 from app.db import get_session
-from app.models import TravelProject, TravelProjectCreate, TravelProjectRead
+from app.models import TravelProject, TravelProjectCreate, TravelProjectRead, TravelProjectUpdate
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
@@ -42,3 +42,24 @@ def get_project(
 
     return project
 
+@router.patch("/{project_id}", response_model=TravelProjectRead)
+def update_project(
+    project_id: int,
+    project_data: TravelProjectUpdate,
+    session: Session = Depends(get_session),
+):
+    project = session.get(TravelProject, project_id)
+
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    update_data = project_data.model_dump(exclude_unset=True)
+
+    for key, value in update_data.items():
+        setattr(project, key, value)
+
+    session.add(project)
+    session.commit()
+    session.refresh(project)
+
+    return project
