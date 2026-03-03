@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session, select
 
 from app.db import get_session
@@ -19,3 +19,13 @@ def create_project(
     session.refresh(project)
 
     return project
+
+@router.get("/", response_model=list[TravelProjectRead])
+def list_projects(
+    session: Session = Depends(get_session),
+    offset: int = Query(0, ge=0),
+    limit: int = Query(10, ge=1, le=50),
+):
+    statement = select(TravelProject).offset(offset).limit(limit)
+    projects = session.exec(statement).all()
+    return projects
