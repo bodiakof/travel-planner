@@ -1,22 +1,54 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session, select
 
+from app.services.artic_client import fetch_artwork
 from app.db import get_session
-from app.models import TravelProject, TravelProjectCreate, TravelProjectRead, TravelProjectUpdate
+from app.models import (
+    TravelProject, 
+    TravelProjectCreate, 
+    TravelProjectRead, 
+    TravelProjectUpdate, 
+    ProjectPlace
+)
+
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
 
 @router.post("/", response_model=TravelProjectRead, status_code=201)
-def create_project(
+async def create_project(
     project_data: TravelProjectCreate,
     session: Session = Depends(get_session),
 ):
-    project = TravelProject(**project_data.model_dump())
+    project = TravelProject(
+        name=project_data.name,
+        description=project_data.description,
+        start_date=project_data.start_date,
+    )
 
     session.add(project)
     session.commit()
     session.refresh(project)
+
+    if project_data.places:
+        if len(project_data.places) > 10:
+            raise HTTPException(
+                status_code=400,
+                detail="Project cannot contain more than 10 places"
+            )
+
+        for external_id in project_data.places:
+            artwork = await fetch_artwork(external_id)
+
+            place = ProjectPlace(
+                project_id=project.id,
+                external_id=artwork["external_id"],
+                title=artwork["title"],
+            )
+
+            session.add(place)
+
+        session.commit()
 
     return project
 
