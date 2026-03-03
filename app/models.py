@@ -47,3 +47,20 @@ class TravelProjectUpdate(SQLModel):
     name: str | None = None
     description: str | None = None
     start_date: date | None = None
+
+
+class ProjectPlaceCreate(SQLModel):
+    external_id: int
+
+
+class ProjectPlaceRead(SQLModel):
+    id: int
+    external_id: int
+    title: str
+    notes: str | None
+    visited: bool
+
+
+class ProjectPlaceUpdate(SQLModel):
+    notes: str | None = None
+    visited: bool | None = None
