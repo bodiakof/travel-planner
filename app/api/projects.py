@@ -29,3 +29,16 @@ def list_projects(
     statement = select(TravelProject).offset(offset).limit(limit)
     projects = session.exec(statement).all()
     return projects
+
+@router.get("/{project_id}", response_model=TravelProjectRead)
+def get_project(
+    project_id: int,
+    session: Session = Depends(get_session),
+):
+    project = session.get(TravelProject, project_id)
+
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    return project
+
