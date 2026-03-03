@@ -33,6 +33,7 @@ class TravelProjectCreate(SQLModel):
     name: str
     description: str | None = None
     start_date: date | None = None
+    places: list[int] | None = None
 
 
 class TravelProjectRead(SQLModel):
