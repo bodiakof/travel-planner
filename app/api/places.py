@@ -58,3 +58,14 @@ async def add_place(
     session.refresh(new_place)
 
     return new_place
+
+@router.get("/", response_model=list[ProjectPlaceRead])
+def list_places(
+    project_id: int,
+    session: Session = Depends(get_session),
+):
+    project = session.get(TravelProject, project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    return project.places
