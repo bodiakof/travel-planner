@@ -27,3 +27,17 @@ class TravelProject(TravelProjectBase, table=True):
     is_completed: bool = False
 
     places: list[ProjectPlace] = Relationship(back_populates="project")
+
+
+class TravelProjectCreate(SQLModel):
+    name: str
+    description: str | None = None
+    start_date: date | None = None
+
+
+class TravelProjectRead(SQLModel):
+    id: int
+    name: str
+    description: str | None
+    start_date: date | None
+    is_completed: bool
