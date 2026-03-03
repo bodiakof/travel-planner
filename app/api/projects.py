@@ -63,3 +63,22 @@ def update_project(
     session.refresh(project)
 
     return project
+
+@router.delete("/{project_id}", status_code=204)
+def delete_project(
+    project_id: int,
+    session: Session = Depends(get_session),
+):
+    project = session.get(TravelProject, project_id)
+
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    if any(place.visited for place in project.places):
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot delete project with visited places"
+        )
+
+    session.delete(project)
+    session.commit()
